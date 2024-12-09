@@ -53,6 +53,12 @@ public class GPSAndStepCounter : MonoBehaviour
     private Vector3 lastARPosition;
     private bool isFirstARPosition = true;
 
+    private float lastDistanceReached = 0f;
+    private int lastStepsReached = 0;
+    private readonly float distanceEventCooldown = 1f; // Cooldown period in seconds
+    private float lastDistanceEventTime = 0f;
+    private float lastStepsEventTime = 0f;
+
     #region Properties
 
     internal float TotalDistance => totalDistance;
@@ -150,13 +156,17 @@ public class GPSAndStepCounter : MonoBehaviour
         stepDistance = totalSteps * averageStepLength;
 
         // Check thresholds and invoke events
-        if (totalDistance >= distanceThreshold)
+        if (totalDistance - lastDistanceReached >= distanceThreshold && Time.time - lastDistanceEventTime >= distanceEventCooldown)
         {
+            lastDistanceReached += distanceThreshold;
+            lastDistanceEventTime = Time.time;
             OnDistanceReached?.Invoke();
         }
 
-        if (totalSteps >= stepsThreshold)
+        if (totalSteps - lastStepsReached >= stepsThreshold && Time.time - lastStepsEventTime >= distanceEventCooldown)
         {
+            lastStepsReached += stepsThreshold;
+            lastStepsEventTime = Time.time;
             OnStepsReached?.Invoke();
         }
 

@@ -7,6 +7,8 @@ using UnityEngine.XR.ARSubsystems;
 public class XR_Placement : MonoBehaviour
 {
     [SerializeField] private List<GameObject> animalPrefabs; // List of animal prefabs
+    [SerializeField] private GameObject foodPrefab; // Food prefab to spawn when button is pressed
+    [SerializeField] private GameObject ballPrefab; // Ball prefab to spawn in front of the animal
     private int selectedAnimalIndex = 0; // Index of the currently selected animal
 
     private Animator animalAnimator;
@@ -83,6 +85,85 @@ public class XR_Placement : MonoBehaviour
         }
     }
 
+    void SpawnFood()
+    {
+        if (spawnedAnimal != null)
+        {
+            // Get the animal's position and forward direction
+            Vector3 animalPosition = spawnedAnimal.transform.position;
+            Vector3 animalForward = spawnedAnimal.transform.forward;
+
+            // Add a random offset in the x and z axes to spawn food in a random position in front of the animal
+            float randomOffsetX = Random.Range(-1f, 1f); // Random offset on the X axis
+            float randomOffsetZ = Random.Range(1f, 3f); // Random offset on the Z axis (in front of the animal)
+
+            Vector3 spawnPosition = animalPosition + animalForward * randomOffsetZ + Vector3.right * randomOffsetX;
+            spawnPosition.y = 0.2f; // Set the Y position to 0.2
+
+            // Instantiate the food prefab at the calculated position
+            GameObject spawnedFood = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
+
+            // Trigger the run animation for 1 second
+            if (animalAnimator != null)
+            {
+                animalAnimator.SetBool("isRunning", true);
+                StartCoroutine(StopRunningAnimationAfterDelay(1f));
+            }
+
+            // Destroy the food after 2 seconds
+            Destroy(spawnedFood, 2f);
+        }
+    }
+
+    void SpawnBall()
+    {
+        if (spawnedAnimal != null)
+        {
+            // Get the animal's position and forward direction
+            Vector3 animalPosition = spawnedAnimal.transform.position;
+            Vector3 animalForward = spawnedAnimal.transform.forward;
+
+            // Add a random offset in the x and z axes to spawn the ball in a random position in front of the animal
+            float randomOffsetX = Random.Range(-1f, 1f); // Random offset on the X axis
+            float randomOffsetZ = Random.Range(1f, 3f); // Random offset on the Z axis (in front of the animal)
+
+            Vector3 spawnPosition = animalPosition + animalForward * randomOffsetZ + Vector3.right * randomOffsetX;
+            spawnPosition.y = 0.2f; // Set the Y position to 0.2
+
+            // Instantiate the ball prefab at the calculated position
+            GameObject spawnedBall = Instantiate(ballPrefab, spawnPosition, Quaternion.identity);
+
+            // Trigger the run animation for 1 second
+            if (animalAnimator != null)
+            {
+                animalAnimator.SetBool("isRunning", true);
+                StartCoroutine(StopRunningAnimationAfterDelay(1f));
+            }
+
+            // Start rotating the ball
+            if (spawnedBall != null)
+            {
+                BallRotation ballRotation = spawnedBall.GetComponent<BallRotation>();
+                if (ballRotation != null)
+                {
+                    //ballRotation.StartRotating();
+                }
+            }
+
+            // Destroy the ball after 2 seconds
+            Destroy(spawnedBall, 2f);
+        }
+    }
+
+    IEnumerator StopRunningAnimationAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (animalAnimator != null)
+        {
+            animalAnimator.SetBool("isRunning", false);
+        }
+    }
+
     void Update()
     {
         if (Input.touchCount > 0)
@@ -108,4 +189,17 @@ public class XR_Placement : MonoBehaviour
 
         selectedAnimalIndex = index;
     }
+
+    // Method to be called by the UI button to spawn food
+    public void OnSpawnFoodButtonPressed()
+    {
+        SpawnFood();
+    }
+
+    // Method to be called by the UI button to spawn the ball
+    public void OnSpawnBallButtonPressed()
+    {
+        SpawnBall();
+    }
 }
+

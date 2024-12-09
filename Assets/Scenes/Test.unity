@@ -235,6 +235,10 @@ MonoBehaviour:
   - {fileID: 2841517088908589448, guid: 34d581e5798d2e84294616cb2c3c8bb9, type: 3}
   - {fileID: 7962199819078159310, guid: f5b41ba4c79702547a89de7544b80656, type: 3}
   - {fileID: 6688229120525518201, guid: 793d37ab250f6924e82bd79f4135e66f, type: 3}
+  foodPrefab: {fileID: 6347646201819164813, guid: a2038af574aef0e40b120233200483a0,
+    type: 3}
+  ballPrefab: {fileID: 4856671373568512599, guid: 24ebf2b0d7c5f9043b8b8762861cf501,
+    type: 3}
 --- !u!1 &24327247
 GameObject:
   m_ObjectHideFlags: 0
@@ -1096,7 +1100,7 @@ PrefabInstance:
     - target: {fileID: 4845276930943762971, guid: 2da3dcc22749e7f4280737786d898334,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: 0.00018310547
       objectReference: {fileID: 0}
     - target: {fileID: 4845637959249703711, guid: 2da3dcc22749e7f4280737786d898334,
         type: 3}
@@ -2720,7 +2724,6 @@ RectTransform:
   - {fileID: 532947286}
   - {fileID: 912071177}
   - {fileID: 349127439}
-  - {fileID: 1967366000}
   m_Father: {fileID: 1679056284}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3888,9 +3891,9 @@ MonoBehaviour:
   OnDistanceReached:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 889614344}
-        m_TargetAssemblyTypeName: ProgressiveMultiplier, Assembly-CSharp
-        m_MethodName: CollectCoin
+      - m_Target: {fileID: 889614343}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: IncreaseCoins
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3918,6 +3921,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   distanceText: {fileID: 1678877956}
   stepsText: {fileID: 1419326424}
+  coinText: {fileID: 967096418}
 --- !u!114 &889614344
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5812,7 +5816,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 9080868}
         m_TargetAssemblyTypeName: XR_Placement, Assembly-CSharp
-        m_MethodName: SpawnRandomFood
+        m_MethodName: OnSpawnFoodButtonPressed
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -7510,7 +7514,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 9080868}
         m_TargetAssemblyTypeName: XR_Placement, Assembly-CSharp
-        m_MethodName: SpawnAndInteractWithBall
+        m_MethodName: OnSpawnBallButtonPressed
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -7583,14 +7587,14 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1967365999}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1759053346}
   - {fileID: 1028237513}
-  m_Father: {fileID: 657063340}
+  m_Father: {fileID: 2028552230}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5945205}
   m_AnchorMax: {x: 1, y: 0.68560046}
@@ -7807,6 +7811,7 @@ RectTransform:
   - {fileID: 365247401}
   - {fileID: 1679056284}
   - {fileID: 890375557}
+  - {fileID: 1967366000}
   - {fileID: 491848670}
   - {fileID: 120421476}
   - {fileID: 779407317}
