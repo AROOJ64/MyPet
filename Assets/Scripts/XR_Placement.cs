@@ -4,186 +4,156 @@ using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
-public class XR_Placement : MonoBehaviour
+public class ARPlacement : MonoBehaviour
 {
-    [SerializeField] private List<GameObject> animalPrefabs; // List of animal prefabs
-    [SerializeField] private GameObject foodPrefab; // Food prefab to spawn when button is pressed
-    [SerializeField] private GameObject ballPrefab; // Ball prefab to spawn in front of the animal
-    [SerializeField] private LayerMask groundLayerMask; // Layer mask for ground detection
+    [Header("AR Components")]
+    [SerializeField] private ARRaycastManager raycastManager;
 
-    private int selectedAnimalIndex = 0; // Index of the currently selected animal
+    [Header("Prefabs")]
+    [SerializeField] private List<GameObject> animalPrefabs;
+    [SerializeField] private GameObject foodPrefab;
+    [SerializeField] private GameObject ballPrefab;
 
-    private Animator animalAnimator;
     private GameObject spawnedAnimal;
-    private ARRaycastManager raycastManager;
-
+    private Animator animalAnimator;
     private bool isObjectPlaced = false;
-    private Vector3 lastCameraPosition;
-    private Vector3 targetPosition;
-    private float timeSinceLastMove = 0f;
+    private int selectedAnimalIndex = 0;
 
     void Start()
     {
-        raycastManager = GetComponent<ARRaycastManager>();
-        lastCameraPosition = Camera.main.transform.position;
-    }
-
-    void ARRaycasting(Vector2 pos)
-    {
-        List<ARRaycastHit> hits = new();
-
-        if (raycastManager.Raycast(pos, hits, TrackableType.PlaneEstimated))
+        if (raycastManager == null)
         {
-            Pose pose = hits[0].pose;
-
-            // Ensure the hit surface is on the ground layer
-            if (Physics.Raycast(pose.position + Vector3.up, Vector3.down, out RaycastHit hitInfo, Mathf.Infinity, groundLayerMask))
-            {
-                ARInstantiation(hitInfo.point, pose.rotation);
-            }
+            Debug.LogError("ARRaycastManager is not assigned in the inspector.");
         }
-    }
-
-    void ARInstantiation(Vector3 pos, Quaternion rot)
-    {
-        if (!isObjectPlaced)
+        if (animalPrefabs == null || animalPrefabs.Count == 0)
         {
-            // Instantiate the selected animal prefab based on the chosen index
-            spawnedAnimal = Instantiate(animalPrefabs[selectedAnimalIndex], pos, rot);
-            isObjectPlaced = true;
-
-            animalAnimator = spawnedAnimal.GetComponent<Animator>();
-            targetPosition = spawnedAnimal.transform.position;
-        }
-    }
-
-    void MoveAnimalWithCamera()
-    {
-        if (isObjectPlaced && spawnedAnimal != null)
-        {
-            Vector3 currentCameraPosition = Camera.main.transform.position;
-            Vector3 deltaPosition = currentCameraPosition - lastCameraPosition;
-
-            float movementThreshold = 0.005f;
-
-            if (deltaPosition.magnitude > movementThreshold)
-            {
-                targetPosition += new Vector3(0, 0, deltaPosition.z);
-
-                if (animalAnimator != null && !animalAnimator.GetBool("isWalking"))
-                {
-                    animalAnimator.SetBool("isWalking", true);
-                }
-
-                timeSinceLastMove = 0f;
-            }
-            else
-            {
-                timeSinceLastMove += Time.deltaTime;
-                if (timeSinceLastMove > 0.2f && animalAnimator != null && animalAnimator.GetBool("isWalking"))
-                {
-                    animalAnimator.SetBool("isWalking", false);
-                }
-            }
-
-            spawnedAnimal.transform.position = Vector3.Lerp(spawnedAnimal.transform.position, targetPosition, Time.deltaTime * 3f);
-
-            lastCameraPosition = currentCameraPosition;
-        }
-    }
-
-    void SpawnFood()
-    {
-        if (spawnedAnimal != null)
-        {
-            Vector3 animalPosition = spawnedAnimal.transform.position;
-            Vector3 animalForward = spawnedAnimal.transform.forward;
-
-            float randomOffsetX = Random.Range(-1f, 1f);
-            float randomOffsetZ = Random.Range(1f, 3f);
-
-            Vector3 spawnPosition = animalPosition + animalForward * randomOffsetZ + Vector3.right * randomOffsetX;
-            spawnPosition.y = 5f; // Start raycasting from above the ground
-
-            if (Physics.Raycast(spawnPosition, Vector3.down, out RaycastHit hitInfo, Mathf.Infinity, groundLayerMask))
-            {
-                Instantiate(foodPrefab, hitInfo.point, Quaternion.identity);
-
-                if (animalAnimator != null)
-                {
-                    animalAnimator.SetBool("isRunning", true);
-                    StartCoroutine(StopRunningAnimationAfterDelay(1f));
-                }
-            }
-        }
-    }
-
-    void SpawnBall()
-    {
-        if (spawnedAnimal != null)
-        {
-            Vector3 animalPosition = spawnedAnimal.transform.position;
-            Vector3 animalForward = spawnedAnimal.transform.forward;
-
-            float randomOffsetX = Random.Range(-1f, 1f);
-            float randomOffsetZ = Random.Range(1f, 3f);
-
-            Vector3 spawnPosition = animalPosition + animalForward * randomOffsetZ + Vector3.right * randomOffsetX;
-            spawnPosition.y = 5f; // Start raycasting from above the ground
-
-            if (Physics.Raycast(spawnPosition, Vector3.down, out RaycastHit hitInfo, Mathf.Infinity, groundLayerMask))
-            {
-                Instantiate(ballPrefab, hitInfo.point, Quaternion.identity);
-
-                if (animalAnimator != null)
-                {
-                    animalAnimator.SetBool("isRunning", true);
-                    StartCoroutine(StopRunningAnimationAfterDelay(1f));
-                }
-            }
-        }
-    }
-
-    IEnumerator StopRunningAnimationAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        if (animalAnimator != null)
-        {
-            animalAnimator.SetBool("isRunning", false);
+            Debug.LogError("Animal prefabs list is empty or not assigned.");
         }
     }
 
     void Update()
     {
-        if (Input.touchCount > 0)
+        if (Input.touchCount > 0 || Input.GetMouseButtonDown(0))
         {
-            Touch touch = Input.GetTouch(0);
-            Vector2 touchPosition = touch.position;
-            ARRaycasting(touchPosition);
+            Vector2 touchPosition;
+
+            if (Input.touchCount > 0)
+            {
+                touchPosition = Input.GetTouch(0).position;
+            }
+            else
+            {
+                touchPosition = Input.mousePosition;
+            }
+
+            PerformRaycast(touchPosition);
         }
-        else if (Input.GetMouseButtonDown(0))
+    }
+
+    private void PerformRaycast(Vector2 touchPosition)
+    {
+        List<ARRaycastHit> hits = new List<ARRaycastHit>();
+
+        if (raycastManager.Raycast(touchPosition, hits, TrackableType.PlaneWithinPolygon))
         {
-            Vector3 mousePos = Input.mousePosition;
-            Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
-            ARRaycasting(mousePos2D);
+            Pose hitPose = hits[0].pose;
+            Debug.Log($"Hit detected at: {hitPose.position}");
+
+            if (!isObjectPlaced && animalPrefabs[selectedAnimalIndex] != null)
+            {
+                ARInstantiate(hitPose.position, hitPose.rotation);
+            }
+            else
+            {
+                Debug.Log("Object already placed or prefab is null.");
+            }
+        }
+        else
+        {
+            Debug.Log("No plane detected at touch position.");
+        }
+    }
+
+    private void ARInstantiate(Vector3 position, Quaternion rotation)
+    {
+        spawnedAnimal = Instantiate(animalPrefabs[selectedAnimalIndex], position, rotation);
+        Debug.Log("Animal instantiated at: " + position);
+
+        animalAnimator = spawnedAnimal.GetComponent<Animator>();
+        if (animalAnimator == null)
+        {
+            Debug.LogWarning("Animator not found on the spawned animal.");
         }
 
-        MoveAnimalWithCamera();
+        isObjectPlaced = true;
     }
 
-    public void SetSelectedAnimal(int index)
+    public void SelectAnimal(int index)
     {
-        if (isObjectPlaced) return;
-        selectedAnimalIndex = index;
+        if (index >= 0 && index < animalPrefabs.Count)
+        {
+            selectedAnimalIndex = index;
+            Debug.Log("Animal selected: " + animalPrefabs[index].name);
+        }
+        else
+        {
+            Debug.LogWarning("Selected animal index is out of range.");
+        }
     }
 
-    public void OnSpawnFoodButtonPressed()
+    public void PlaceFood()
     {
-        SpawnFood();
+        if (spawnedAnimal != null && foodPrefab != null)
+        {
+            Instantiate(foodPrefab, spawnedAnimal.transform.position + Vector3.forward, Quaternion.identity);
+            Debug.Log("Food placed in front of the animal.");
+            PlayRunningAnimation();
+        }
+        else
+        {
+            Debug.LogWarning("Cannot place food; either the animal or foodPrefab is missing.");
+        }
     }
 
-    public void OnSpawnBallButtonPressed()
+    public void ThrowBall()
     {
-        SpawnBall();
+        if (spawnedAnimal != null && ballPrefab != null)
+        {
+            Instantiate(ballPrefab, spawnedAnimal.transform.position + Vector3.forward * 2, Quaternion.identity);
+            Debug.Log("Ball thrown in front of the animal.");
+            PlayRunningAnimation();
+        }
+        else
+        {
+            Debug.LogWarning("Cannot throw ball; either the animal or ballPrefab is missing.");
+        }
     }
+
+    private void PlayRunningAnimation()
+    {
+        if (animalAnimator != null)
+        {
+            animalAnimator.SetTrigger("isRunning");
+            Debug.Log("Running animation triggered.");
+
+            // Reset trigger after the animation is expected to finish
+            StartCoroutine(ResetRunningAnimation());
+        }
+        else
+        {
+            Debug.LogWarning("No Animator found to play the running animation.");
+        }
+    }
+
+    private IEnumerator ResetRunningAnimation()
+    {
+        // Wait for the animation to finish (adjust the time based on your animation length)
+        yield return new WaitForSeconds(1.0f); // Replace 1.0f with the actual animation length
+        if (animalAnimator != null)
+        {
+            animalAnimator.ResetTrigger("isRunning");
+            Debug.Log("Running animation reset.");
+        }
+    }
+
 }

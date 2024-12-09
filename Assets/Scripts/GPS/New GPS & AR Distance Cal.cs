@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.Android;
@@ -10,6 +11,9 @@ public class GPSAndStepCounter : MonoBehaviour
     [SerializeField] private XROrigin arSessionOrigin;
 
     [SerializeField] private Transform arCamera;
+
+    [SerializeField] private TextMeshProUGUI totalDistanceText;
+    [SerializeField] private TextMeshProUGUI totalStepsText;
 
     // Weights for combining GPS and AR distances
     [SerializeField, Range(0f, 1f)]
@@ -170,11 +174,16 @@ public class GPSAndStepCounter : MonoBehaviour
             OnStepsReached?.Invoke();
         }
 
-        // Display results
+        // Update the UI with the calculated values
+        totalDistanceText.text = $"{totalDistance:F2} meters"; // Format total distance to 2 decimal places
+        totalStepsText.text = $"{totalSteps}"; // Display total steps as an integer
+
+        // Debugging output
         Debug.Log($"Total Distance Walked: {totalDistance:F2} meters");
         Debug.Log($"Total Steps Taken: {totalSteps}");
         Debug.Log($"Distance Calculated from Steps: {stepDistance:F2} meters");
     }
+
 
     private void UpdateGPSData()
     {

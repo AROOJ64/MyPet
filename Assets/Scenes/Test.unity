@@ -231,6 +231,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 800066cfa7306cd44ac5c21f784db075, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  raycastManager: {fileID: 9080863}
   animalPrefabs:
   - {fileID: 2841517088908589448, guid: 34d581e5798d2e84294616cb2c3c8bb9, type: 3}
   - {fileID: 7962199819078159310, guid: f5b41ba4c79702547a89de7544b80656, type: 3}
@@ -239,9 +240,6 @@ MonoBehaviour:
     type: 3}
   ballPrefab: {fileID: 4856671373568512599, guid: 24ebf2b0d7c5f9043b8b8762861cf501,
     type: 3}
-  groundLayerMask:
-    serializedVersion: 2
-    m_Bits: 64
 --- !u!1 &24327247
 GameObject:
   m_ObjectHideFlags: 0
@@ -306,20 +304,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 9080868}
-        m_TargetAssemblyTypeName: XR_Placement, Assembly-CSharp
-        m_MethodName: SetSelectedAnimal
-        m_Mode: 3
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 889614345}
-        m_TargetAssemblyTypeName: FirstTimePanel, Assembly-CSharp
-        m_MethodName: SelectOption
+        m_TargetAssemblyTypeName: ARPlacement, Assembly-CSharp
+        m_MethodName: SelectAnimal
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -381,10 +367,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 265278027}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.30267963}
-  m_AnchorMax: {x: 1, y: 0.6643204}
-  m_AnchoredPosition: {x: 241.68, y: 540.7337}
-  m_SizeDelta: {x: -866.8402, y: -574.0088}
+  m_AnchorMin: {x: 0.52570087, y: 0.58456016}
+  m_AnchorMax: {x: 1, y: 0.75164074}
+  m_AnchoredPosition: {x: -37.80011, y: 3.88208}
+  m_SizeDelta: {x: -143.4404, y: 14.7551}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &146153095
 GameObject:
@@ -981,7 +967,7 @@ PrefabInstance:
     - target: {fileID: 4845276930943762971, guid: 2da3dcc22749e7f4280737786d898334,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.00012207031
+      value: -0.00036621094
       objectReference: {fileID: 0}
     - target: {fileID: 4845637959249703711, guid: 2da3dcc22749e7f4280737786d898334,
         type: 3}
@@ -1998,10 +1984,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1759053346}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0.40048015, y: 1}
-  m_AnchoredPosition: {x: 33, y: -37.052}
-  m_SizeDelta: {x: -177.92749, y: -37.8961}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0.39744043, y: 1}
+  m_AnchoredPosition: {x: 23.0169, y: 35.44}
+  m_SizeDelta: {x: -153.9613, y: -138.91}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &405201415
 MonoBehaviour:
@@ -2309,10 +2295,10 @@ RectTransform:
   - {fileID: 981648982}
   m_Father: {fileID: 265278027}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 0.14948021}
-  m_AnchoredPosition: {x: -0.20996094, y: 129.85474}
-  m_SizeDelta: {x: -247.34003, y: -258.7406}
+  m_AnchorMin: {x: 0.09188474, y: 0}
+  m_AnchorMax: {x: 0.89800006, y: 0.1494802}
+  m_AnchoredPosition: {x: 6.290039, y: 129.85474}
+  m_SizeDelta: {x: 1.6599731, y: -258.7406}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &575258643
 MonoBehaviour:
@@ -2360,8 +2346,8 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 889614345}
         m_TargetAssemblyTypeName: FirstTimePanel, Assembly-CSharp
-        m_MethodName: CloseFirstTimePanel
-        m_Mode: 1
+        m_MethodName: SelectOption
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -2442,8 +2428,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.60650575}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 120.23, y: -26.940964}
-  m_SizeDelta: {x: -240.46, y: -47}
+  m_AnchoredPosition: {x: 120.23, y: -32.7763}
+  m_SizeDelta: {x: -240.46, y: -3.7283}
   m_Pivot: {x: 0.5, y: 0.2287817}
 --- !u!114 &602132581
 MonoBehaviour:
@@ -2502,7 +2488,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 1
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -2848,10 +2834,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1028237513}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.36240268, y: 0.56100005}
+  m_AnchorMin: {x: 0.3352213, y: 0.56100005}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -12.692, y: -37.2877}
-  m_SizeDelta: {x: 25.3842, y: -53.2607}
+  m_AnchoredPosition: {x: -4.1920013, y: -26.534893}
+  m_SizeDelta: {x: 8.3842, y: -5.948}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &682357956
 MonoBehaviour:
@@ -2949,6 +2935,81 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 682357954}
+  m_CullTransparentMesh: 1
+--- !u!1 &743395133
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 743395134}
+  - component: {fileID: 743395136}
+  - component: {fileID: 743395135}
+  m_Layer: 5
+  m_Name: Image
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &743395134
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 743395133}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1765921448}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 22}
+  m_SizeDelta: {x: -72.733154, y: -2441.0723}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &743395135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 743395133}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: df80b509282ab004fbd3471e29fa3f3c, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &743395136
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 743395133}
   m_CullTransparentMesh: 1
 --- !u!1 &795589045
 GameObject:
@@ -3566,10 +3627,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   arSessionOrigin: {fileID: 9080866}
   arCamera: {fileID: 868566124}
+  totalDistanceText: {fileID: 1678877956}
+  totalStepsText: {fileID: 1419326424}
   gpsWeight: 0.4
   arWeight: 0.6
   averageStepLength: 0.76
-  distanceThreshold: 1000
+  distanceThreshold: 10
   OnDistanceReached:
     m_PersistentCalls:
       m_Calls:
@@ -3871,18 +3934,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 889614345}
-        m_TargetAssemblyTypeName: FirstTimePanel, Assembly-CSharp
-        m_MethodName: SelectOption
-        m_Mode: 3
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!114 &923707659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3935,10 +3986,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 265278027}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.30267963}
-  m_AnchorMax: {x: 1, y: 0.6643204}
-  m_AnchoredPosition: {x: -310.185, y: 542}
-  m_SizeDelta: {x: -869.2899, y: -576.5376}
+  m_AnchorMin: {x: 0, y: 0.58456016}
+  m_AnchorMax: {x: 0.42362615, y: 0.75920016}
+  m_AnchoredPosition: {x: 57.82251, y: -6.173004}
+  m_SizeDelta: {x: -81.6388, y: -6.1920013}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &967096416
 GameObject:
@@ -4272,20 +4323,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 9080868}
-        m_TargetAssemblyTypeName: XR_Placement, Assembly-CSharp
-        m_MethodName: SetSelectedAnimal
-        m_Mode: 3
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 2
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 889614345}
-        m_TargetAssemblyTypeName: FirstTimePanel, Assembly-CSharp
-        m_MethodName: SelectOption
+        m_TargetAssemblyTypeName: ARPlacement, Assembly-CSharp
+        m_MethodName: SelectAnimal
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4347,10 +4386,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 265278027}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.30267963}
-  m_AnchorMax: {x: 1, y: 0.6643204}
-  m_AnchoredPosition: {x: -309.56, y: 11.134766}
-  m_SizeDelta: {x: -868.03, y: -575.23}
+  m_AnchorMin: {x: 0, y: 0.39311957}
+  m_AnchorMax: {x: 0.42362615, y: 0.56476104}
+  m_AnchoredPosition: {x: 59, y: -0.8909912}
+  m_SizeDelta: {x: -81.485, y: 0.82160187}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1028237512
 GameObject:
@@ -4906,10 +4945,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 265278027}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.8527116}
+  m_AnchorMin: {x: 0, y: 0.78143716}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -141.46, y: -345}
-  m_SizeDelta: {x: -531.8397, y: -305.0654}
+  m_AnchoredPosition: {x: 34.35852, y: -204.51733}
+  m_SizeDelta: {x: -180.2026, y: -420.0999}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1160748144
 MonoBehaviour:
@@ -5350,10 +5389,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1759053346}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.37920222, y: 0}
-  m_AnchorMax: {x: 0.688, y: 0.45538193}
-  m_AnchoredPosition: {x: -21.958296, y: 18.00003}
-  m_SizeDelta: {x: -4, y: -62}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0.45538193}
+  m_AnchoredPosition: {x: 50.717773, y: 5.2040024}
+  m_SizeDelta: {x: -387.3424, y: -36.408}
   m_Pivot: {x: 0.46257326, y: 0.49999997}
 --- !u!114 &1419326424
 MonoBehaviour:
@@ -5535,8 +5574,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 9080868}
-        m_TargetAssemblyTypeName: XR_Placement, Assembly-CSharp
-        m_MethodName: OnSpawnFoodButtonPressed
+        m_TargetAssemblyTypeName: ARPlacement, Assembly-CSharp
+        m_MethodName: PlaceFood
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -6421,10 +6460,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1028237513}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.36240268, y: 0}
-  m_AnchorMax: {x: 0.77800006, y: 0.4675505}
-  m_AnchoredPosition: {x: -15, y: 23.15}
-  m_SizeDelta: {x: 1.5588989, y: -65}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0.423}
+  m_AnchoredPosition: {x: 27.099, y: 24.558}
+  m_SizeDelta: {x: -326.23, y: -28.1932}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1678877956
 MonoBehaviour:
@@ -6540,7 +6579,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1679056284
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7059,7 +7098,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 2552d0ac63cdf50498a46f7531e877ef, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -7088,7 +7127,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 743395134}
   m_Father: {fileID: 2028552230}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -7255,8 +7295,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 9080868}
-        m_TargetAssemblyTypeName: XR_Placement, Assembly-CSharp
-        m_MethodName: OnSpawnBallButtonPressed
+        m_TargetAssemblyTypeName: ARPlacement, Assembly-CSharp
+        m_MethodName: ThrowBall
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -7670,11 +7710,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1028237513}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.4675505}
-  m_AnchorMax: {x: 0.7363894, y: 1}
-  m_AnchoredPosition: {x: -78.5, y: -36.5}
-  m_SizeDelta: {x: -384.2964, y: -54.300003}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0.31445584, y: 1}
+  m_AnchoredPosition: {x: 46.523193, y: 2.3002157}
+  m_SizeDelta: {x: -106.342804, y: -155.2999}
+  m_Pivot: {x: 0.5, y: 0.66548544}
 --- !u!114 &2033735892
 MonoBehaviour:
   m_ObjectHideFlags: 0
