@@ -9,6 +9,8 @@ public class XR_Placement : MonoBehaviour
     [SerializeField] private List<GameObject> animalPrefabs; // List of animal prefabs
     [SerializeField] private GameObject foodPrefab; // Food prefab to spawn when button is pressed
     [SerializeField] private GameObject ballPrefab; // Ball prefab to spawn in front of the animal
+    [SerializeField] private LayerMask groundLayerMask; // Layer mask for ground detection
+
     private int selectedAnimalIndex = 0; // Index of the currently selected animal
 
     private Animator animalAnimator;
@@ -33,7 +35,12 @@ public class XR_Placement : MonoBehaviour
         if (raycastManager.Raycast(pos, hits, TrackableType.PlaneEstimated))
         {
             Pose pose = hits[0].pose;
-            ARInstantiation(pose.position, pose.rotation);
+
+            // Ensure the hit surface is on the ground layer
+            if (Physics.Raycast(pose.position + Vector3.up, Vector3.down, out RaycastHit hitInfo, Mathf.Infinity, groundLayerMask))
+            {
+                ARInstantiation(hitInfo.point, pose.rotation);
+            }
         }
     }
 
@@ -89,29 +96,25 @@ public class XR_Placement : MonoBehaviour
     {
         if (spawnedAnimal != null)
         {
-            // Get the animal's position and forward direction
             Vector3 animalPosition = spawnedAnimal.transform.position;
             Vector3 animalForward = spawnedAnimal.transform.forward;
 
-            // Add a random offset in the x and z axes to spawn food in a random position in front of the animal
-            float randomOffsetX = Random.Range(-1f, 1f); // Random offset on the X axis
-            float randomOffsetZ = Random.Range(1f, 3f); // Random offset on the Z axis (in front of the animal)
+            float randomOffsetX = Random.Range(-1f, 1f);
+            float randomOffsetZ = Random.Range(1f, 3f);
 
             Vector3 spawnPosition = animalPosition + animalForward * randomOffsetZ + Vector3.right * randomOffsetX;
-            spawnPosition.y = 0.2f; // Set the Y position to 0.2
+            spawnPosition.y = 5f; // Start raycasting from above the ground
 
-            // Instantiate the food prefab at the calculated position
-            GameObject spawnedFood = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
-
-            // Trigger the run animation for 1 second
-            if (animalAnimator != null)
+            if (Physics.Raycast(spawnPosition, Vector3.down, out RaycastHit hitInfo, Mathf.Infinity, groundLayerMask))
             {
-                animalAnimator.SetBool("isRunning", true);
-                StartCoroutine(StopRunningAnimationAfterDelay(1f));
-            }
+                Instantiate(foodPrefab, hitInfo.point, Quaternion.identity);
 
-            // Destroy the food after 2 seconds
-            Destroy(spawnedFood, 2f);
+                if (animalAnimator != null)
+                {
+                    animalAnimator.SetBool("isRunning", true);
+                    StartCoroutine(StopRunningAnimationAfterDelay(1f));
+                }
+            }
         }
     }
 
@@ -119,39 +122,25 @@ public class XR_Placement : MonoBehaviour
     {
         if (spawnedAnimal != null)
         {
-            // Get the animal's position and forward direction
             Vector3 animalPosition = spawnedAnimal.transform.position;
             Vector3 animalForward = spawnedAnimal.transform.forward;
 
-            // Add a random offset in the x and z axes to spawn the ball in a random position in front of the animal
-            float randomOffsetX = Random.Range(-1f, 1f); // Random offset on the X axis
-            float randomOffsetZ = Random.Range(1f, 3f); // Random offset on the Z axis (in front of the animal)
+            float randomOffsetX = Random.Range(-1f, 1f);
+            float randomOffsetZ = Random.Range(1f, 3f);
 
             Vector3 spawnPosition = animalPosition + animalForward * randomOffsetZ + Vector3.right * randomOffsetX;
-            spawnPosition.y = 0.2f; // Set the Y position to 0.2
+            spawnPosition.y = 5f; // Start raycasting from above the ground
 
-            // Instantiate the ball prefab at the calculated position
-            GameObject spawnedBall = Instantiate(ballPrefab, spawnPosition, Quaternion.identity);
-
-            // Trigger the run animation for 1 second
-            if (animalAnimator != null)
+            if (Physics.Raycast(spawnPosition, Vector3.down, out RaycastHit hitInfo, Mathf.Infinity, groundLayerMask))
             {
-                animalAnimator.SetBool("isRunning", true);
-                StartCoroutine(StopRunningAnimationAfterDelay(1f));
-            }
+                Instantiate(ballPrefab, hitInfo.point, Quaternion.identity);
 
-            // Start rotating the ball
-            if (spawnedBall != null)
-            {
-                BallRotation ballRotation = spawnedBall.GetComponent<BallRotation>();
-                if (ballRotation != null)
+                if (animalAnimator != null)
                 {
-                    //ballRotation.StartRotating();
+                    animalAnimator.SetBool("isRunning", true);
+                    StartCoroutine(StopRunningAnimationAfterDelay(1f));
                 }
             }
-
-            // Destroy the ball after 2 seconds
-            Destroy(spawnedBall, 2f);
         }
     }
 
@@ -182,24 +171,19 @@ public class XR_Placement : MonoBehaviour
         MoveAnimalWithCamera();
     }
 
-    // Method to set the selected animal based on the button clicked
     public void SetSelectedAnimal(int index)
     {
-        if (isObjectPlaced) return; // Prevent changing animal once placed
-
+        if (isObjectPlaced) return;
         selectedAnimalIndex = index;
     }
 
-    // Method to be called by the UI button to spawn food
     public void OnSpawnFoodButtonPressed()
     {
         SpawnFood();
     }
 
-    // Method to be called by the UI button to spawn the ball
     public void OnSpawnBallButtonPressed()
     {
         SpawnBall();
     }
 }
-
