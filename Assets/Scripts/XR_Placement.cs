@@ -11,6 +11,7 @@ public class ARPlacement : MonoBehaviour
 
     [Header("Prefabs")]
     [SerializeField] private List<GameObject> animalPrefabs;
+
     [SerializeField] private GameObject foodPrefab;
     [SerializeField] private GameObject ballPrefab;
 
@@ -21,11 +22,12 @@ public class ARPlacement : MonoBehaviour
 
     // Camera movement tracking
     private Vector3 lastCameraPosition;
+
     private float movementThreshold = 0.05f; // Minimum movement distance to trigger walking animation
     private bool isMoving = false;
     private float movementSmoothingFactor = 0.1f; // How much smoothing to apply
 
-    void Start()
+    private void Start()
     {
         if (raycastManager == null)
         {
@@ -39,7 +41,7 @@ public class ARPlacement : MonoBehaviour
         lastCameraPosition = Camera.main.transform.position; // Initialize the camera position
     }
 
-    void Update()
+    private void Update()
     {
         if (Input.touchCount > 0 || Input.GetMouseButtonDown(0))
         {
@@ -82,12 +84,12 @@ public class ARPlacement : MonoBehaviour
 
     private void PerformRaycast(Vector2 touchPosition)
     {
-        List<ARRaycastHit> hits = new List<ARRaycastHit>();
+        List<ARRaycastHit> hits = new();
 
         if (raycastManager.Raycast(touchPosition, hits, TrackableType.PlaneWithinPolygon))
         {
             Pose hitPose = hits[0].pose;
-            Debug.Log($"Hit detected at: {hitPose.position}");
+            //Debug.Log($"Hit detected at: {hitPose.position}");
 
             if (!isObjectPlaced && animalPrefabs[selectedAnimalIndex] != null)
             {
@@ -95,24 +97,24 @@ public class ARPlacement : MonoBehaviour
             }
             else
             {
-                Debug.Log("Object already placed or prefab is null.");
+                //Debug.Log("Object already placed or prefab is null.");
             }
         }
         else
         {
-            Debug.Log("No plane detected at touch position.");
+            //Debug.Log("No plane detected at touch position.");
         }
     }
 
     private void ARInstantiate(Vector3 position, Quaternion rotation)
     {
         spawnedAnimal = Instantiate(animalPrefabs[selectedAnimalIndex], position, rotation);
-        Debug.Log("Animal instantiated at: " + position);
+        //Debug.Log("Animal instantiated at: " + position);
 
         animalAnimator = spawnedAnimal.GetComponent<Animator>();
         if (animalAnimator == null)
         {
-            Debug.LogWarning("Animator not found on the spawned animal.");
+            //Debug.LogWarning("Animator not found on the spawned animal.");
         }
 
         isObjectPlaced = true;
@@ -123,11 +125,11 @@ public class ARPlacement : MonoBehaviour
         if (index >= 0 && index < animalPrefabs.Count)
         {
             selectedAnimalIndex = index;
-            Debug.Log("Animal selected: " + animalPrefabs[index].name);
+            //Debug.Log("Animal selected: " + animalPrefabs[index].name);
         }
         else
         {
-            Debug.LogWarning("Selected animal index is out of range.");
+            //Debug.LogWarning("Selected animal index is out of range.");
         }
     }
 
@@ -136,7 +138,7 @@ public class ARPlacement : MonoBehaviour
         if (spawnedAnimal != null && foodPrefab != null)
         {
             GameObject food = Instantiate(foodPrefab, spawnedAnimal.transform.position + Vector3.forward, Quaternion.identity);
-            Debug.Log("Food placed in front of the animal.");
+            //Debug.Log("Food placed in front of the animal.");
 
             // Destroy the food after 2 seconds
             Destroy(food, 2f);
@@ -145,7 +147,7 @@ public class ARPlacement : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Cannot place food; either the animal or foodPrefab is missing.");
+            //Debug.LogWarning("Cannot place food; either the animal or foodPrefab is missing.");
         }
     }
 
@@ -154,7 +156,7 @@ public class ARPlacement : MonoBehaviour
         if (spawnedAnimal != null && ballPrefab != null)
         {
             GameObject ball = Instantiate(ballPrefab, spawnedAnimal.transform.position + Vector3.forward * 2, Quaternion.identity);
-            Debug.Log("Ball thrown in front of the animal.");
+            //Debug.Log("Ball thrown in front of the animal.");
 
             // Destroy the ball after 2 seconds
             Destroy(ball, 2f);
@@ -163,7 +165,7 @@ public class ARPlacement : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Cannot throw ball; either the animal or ballPrefab is missing.");
+            //Debug.LogWarning("Cannot throw ball; either the animal or ballPrefab is missing.");
         }
     }
 
@@ -172,11 +174,11 @@ public class ARPlacement : MonoBehaviour
         if (animalAnimator != null && isMoving)
         {
             animalAnimator.SetBool("isWalking", true);
-            Debug.Log("Walking animation triggered.");
+            //Debug.Log("Walking animation triggered.");
         }
         else
         {
-            Debug.LogWarning("No Animator found to play the walking animation.");
+            //Debug.LogWarning("No Animator found to play the walking animation.");
         }
     }
 
@@ -190,9 +192,8 @@ public class ARPlacement : MonoBehaviour
         {
             // Gradually reduce the walking animation speed
             if (animalAnimator != null)
-            {
                 animalAnimator.speed = Mathf.Lerp(1f, 0f, elapsedTime / idleTransitionTime);
-            }
+
             elapsedTime += Time.deltaTime;
             yield return null;
         }
@@ -203,7 +204,8 @@ public class ARPlacement : MonoBehaviour
             animalAnimator.SetBool("isWalking", false);
             animalAnimator.speed = 1f; // Reset animation speed
             animalAnimator.SetTrigger("isIdle");
-            Debug.Log("Walking animation stopped and transitioned to idle.");
+
+            //Debug.Log("Walking animation stopped and transitioned to idle.");
         }
     }
 
@@ -221,14 +223,14 @@ public class ARPlacement : MonoBehaviour
         if (animalAnimator != null)
         {
             animalAnimator.SetTrigger("isRunning");
-            Debug.Log("Running animation triggered.");
+            //Debug.Log("Running animation triggered.");
 
             // Reset trigger after the animation is expected to finish
             StartCoroutine(ResetRunningAnimation());
         }
         else
         {
-            Debug.LogWarning("No Animator found to play the running animation.");
+            //Debug.LogWarning("No Animator found to play the running animation.");
         }
     }
 
@@ -239,7 +241,7 @@ public class ARPlacement : MonoBehaviour
         if (animalAnimator != null)
         {
             animalAnimator.ResetTrigger("isRunning");
-            Debug.Log("Running animation reset.");
+            //Debug.Log("Running animation reset.");
         }
     }
 }

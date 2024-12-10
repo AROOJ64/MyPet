@@ -26,12 +26,20 @@ public class GPSAndStepCounter : MonoBehaviour
     // Average step length in meters (adjust as needed)
     [SerializeField] private float averageStepLength = 0.76f; // Average adult step length
 
+    [Header("Events")]
+    public float distanceThreshold = 1000f; // Example threshold in meters
+
+    public UnityEvent OnDistanceReached;
+
+    public int stepsThreshold = 2000; // Example threshold in steps
+    public UnityEvent OnStepsReached;
+
     private float gpsLatitude;
     private float gpsLongitude;
 
     #region Step Detection Variables
 
-    private int totalSteps = 0;
+    private int _totalSteps = 0;
 
     // Step detection variables
     private readonly Queue<float> accelerationHistory = new();
@@ -52,8 +60,8 @@ public class GPSAndStepCounter : MonoBehaviour
 
     private float gpsTotalDistance = 0f;
     private float arTotalDistance = 0f;
-    private float totalDistance = 0f;
-    private float stepDistance = 0f;
+    private float _totalDistance = 0f;
+    private float _stepDistance = 0f;
 
     private Vector3 lastARPosition;
     private bool isFirstARPosition = true;
@@ -64,26 +72,31 @@ public class GPSAndStepCounter : MonoBehaviour
     private float lastDistanceEventTime = 0f;
     private float lastStepsEventTime = 0f;
 
-    #region Properties
-
-    internal float TotalDistance => totalDistance;
-    internal int TotalSteps => totalSteps;
-
-    #endregion Properties
-
     public static GPSAndStepCounter Instance { get; private set; }
 
-    [Header("Events")]
-    public float distanceThreshold = 1000f; // Example threshold in meters
+    #region Properties
 
-    public UnityEvent OnDistanceReached;
+    internal float TotalDistance
+    {
+        get => _totalDistance;
+        set
+        {
+            _totalDistance = value;
+            SaveData();
+        }
+    }
 
-    public int stepsThreshold = 2000; // Example threshold in steps
-    public UnityEvent OnStepsReached;
-    
-    //Daily Reset
-    private const string LastResetDateKey = "LastResetDate";
-    private string cachedResetDate;
+    internal int TotalSteps
+    {
+        get => _totalSteps;
+        set
+        {
+            _totalSteps = value;
+            SaveData();
+        }
+    }
+
+    #endregion Properties
 
     private void Awake()
     {
@@ -101,7 +114,6 @@ public class GPSAndStepCounter : MonoBehaviour
 
     private void Start()
     {
-        LoadData();
         // Request location permissions
         if (!Permission.HasUserAuthorizedPermission(Permission.FineLocation))
         {
@@ -113,10 +125,7 @@ public class GPSAndStepCounter : MonoBehaviour
         if (!Input.location.isEnabledByUser)
         {
             Debug.Log("GPS not enabled.");
-            return;
         }
-
-        Input.location.Start();
 
         // Validate AR setup
         if (arSessionOrigin == null || arCamera == null)
@@ -130,6 +139,10 @@ public class GPSAndStepCounter : MonoBehaviour
             Debug.LogError("Accelerometer not supported on this device!");
         }
 
+        LoadData();
+
+        Input.location.Start();
+
         // Save the initial AR position
         lastARPosition = arCamera.position;
 
@@ -139,24 +152,33 @@ public class GPSAndStepCounter : MonoBehaviour
         // Pre-fill the accelerationHistory with the initial value
         for (int i = 0; i < historySize; i++)
             accelerationHistory.Enqueue(previousFilteredValue);
-
-        
-        SaveData(); // Ensure data is saved after loading initial values
-
-        cachedResetDate = PlayerPrefs.GetString(LastResetDateKey, string.Empty);
-        CheckDailyReset();
     }
 
     private void Update()
     {
-        // Update GPS data
-        UpdateGPSData();
+        // Check if GPS tracking is available
+        bool isGPSTrackingAvailable = Input.location.status == LocationServiceStatus.Running && Permission.HasUserAuthorizedPermission(Permission.FineLocation);
 
-        // Update AR distance
-        UpdateARDistance();
+        if (isGPSTrackingAvailable)
+        {
+            // Update GPS data
+            UpdateGPSData();
 
-        // Update total distance based on weights
-        totalDistance = (gpsWeight * gpsTotalDistance) + (arWeight * arTotalDistance);
+            // Update AR distance
+            UpdateARDistance();
+
+            // Update total distance based on weights
+            TotalDistance = (gpsWeight * gpsTotalDistance) + (arWeight * arTotalDistance);
+
+            Debug.Log($"GPS Distance: {gpsTotalDistance:F2} meters");
+        }
+        else
+        {
+            // Use step distance if GPS tracking is unavailable
+            //TotalDistance = _stepDistance;
+
+            //Debug.Log("GPS tracking not available. Using step distance instead.");
+        }
 
         // Detect steps using accelerometer
         DetectSteps();
@@ -164,41 +186,37 @@ public class GPSAndStepCounter : MonoBehaviour
         // Reset totalSteps after initialization
         if (!hasInitialized && accelerationHistory.Count >= historySize)
         {
-            totalSteps = 0;
+            TotalSteps = 0;
             hasInitialized = true;
         }
 
         // Calculate distance based on steps
-        stepDistance = totalSteps * averageStepLength;
+        _stepDistance = TotalSteps * averageStepLength;
 
         // Check thresholds and invoke events
-        if (totalDistance - lastDistanceReached >= distanceThreshold && Time.time - lastDistanceEventTime >= distanceEventCooldown)
+        if (TotalDistance - lastDistanceReached >= distanceThreshold && Time.time - lastDistanceEventTime >= distanceEventCooldown)
         {
             lastDistanceReached += distanceThreshold;
             lastDistanceEventTime = Time.time;
             OnDistanceReached?.Invoke();
-            SaveData();
         }
 
-        if (totalSteps - lastStepsReached >= stepsThreshold && Time.time - lastStepsEventTime >= distanceEventCooldown)
+        if (TotalSteps - lastStepsReached >= stepsThreshold && Time.time - lastStepsEventTime >= distanceEventCooldown)
         {
             lastStepsReached += stepsThreshold;
             lastStepsEventTime = Time.time;
             OnStepsReached?.Invoke();
-            SaveData();
         }
 
         // Update the UI with the calculated values
-        totalDistanceText.text = $"{totalDistance:F2} meters"; // Format total distance to 2 decimal places
-        totalStepsText.text = $"{totalSteps}"; // Display total steps as an integer
-
-        // Debugging output
-        Debug.Log($"Total Distance Walked: {totalDistance:F2} meters");
-        Debug.Log($"Total Steps Taken: {totalSteps}");
-        Debug.Log($"Distance Calculated from Steps: {stepDistance:F2} meters");
-        SaveData();
+        totalDistanceText.text = $"{TotalDistance:F2} meters"; // Format total distance to 2 decimal places
+        totalStepsText.text = $"{TotalSteps}"; // Display total steps as an integer
     }
 
+    private void OnApplicationQuit()
+    {
+        SaveData(); // Save data when the application is closed
+    }
 
     private void UpdateGPSData()
     {
@@ -222,7 +240,7 @@ public class GPSAndStepCounter : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("GPS data not accurate enough. Skipping this update.");
+                    //Debug.Log("GPS data not accurate enough. Skipping this update.");
                 }
             }
 
@@ -296,7 +314,7 @@ public class GPSAndStepCounter : MonoBehaviour
 
         // Perform peak detection
         if (IsStepDetected())
-            totalSteps++;
+            TotalSteps++;
     }
 
     private bool IsStepDetected()
@@ -338,7 +356,7 @@ public class GPSAndStepCounter : MonoBehaviour
         float currentAcceleration = data[lastIndex];
 
         // Debugging output
-        Debug.Log($"Mean: {mean:F3}, StdDev: {standardDeviation:F3}, DynamicThreshold: {dynamicThreshold:F3}, CurrentAccel: {currentAcceleration:F3}");
+        //Debug.Log($"Mean: {mean:F3}, StdDev: {standardDeviation:F3}, DynamicThreshold: {dynamicThreshold:F3}, CurrentAccel: {currentAcceleration:F3}");
 
         // Detect a peak
         if ((currentAcceleration > dynamicThreshold) &&
@@ -356,61 +374,51 @@ public class GPSAndStepCounter : MonoBehaviour
 
     private void SaveData()
     {
-        PlayerPrefs.SetFloat("TotalDistance", totalDistance);
-        PlayerPrefs.SetInt("TotalSteps", totalSteps);
-        PlayerPrefs.SetFloat("StepDistance", stepDistance);
+        PlayerPrefs.SetFloat("TotalDistance", TotalDistance);
+        PlayerPrefs.SetInt("TotalSteps", TotalSteps);
+        PlayerPrefs.SetString("LastSaveTime", DateTime.Now.ToString());
+
         PlayerPrefs.Save();
-        Debug.Log("Data Saved");
-        Debug.Log("Data Saved - Total Distance: " + totalDistance + ", Total Steps: " + totalSteps + ", Step Distance: " + stepDistance);
+
+        Debug.Log("Data Saved - Total Distance: " + TotalDistance + ", Total Steps: " + TotalSteps);
     }
 
     private void LoadData()
     {
-        totalDistance = PlayerPrefs.GetFloat("TotalDistance", 0f);
-        totalSteps = PlayerPrefs.GetInt("TotalSteps", 0);
-        stepDistance = PlayerPrefs.GetFloat("StepDistance", 0f);
+        TotalDistance = PlayerPrefs.GetFloat("TotalDistance", 0f);
+        TotalSteps = PlayerPrefs.GetInt("TotalSteps", 0);
 
-        Debug.Log($"Loaded Data - Total Distance: {totalDistance}, Total Steps: {totalSteps}, Step Distance: {stepDistance}");
-    }
-    private void OnApplicationQuit()
-    {
-        SaveData(); // Save data when the application is closed
-        Debug.Log("Application is quitting");
-    }
-    private void CheckDailyReset()
-    {
-        //string lastResetDate = PlayerPrefs.GetString(LastResetDateKey, string.Empty);
-        //string currentDate = DateTime.Now.ToString("yyyy-MM-dd"); // Format date as "2024-12-10"
-
-        //if (lastResetDate != currentDate)
-        //{
-        //    ResetData();
-        //    PlayerPrefs.SetString(LastResetDateKey, currentDate); // Update the reset date
-        //    PlayerPrefs.Save();
-        //}
-        string currentDate = DateTime.Now.ToString("yyyy-MM-dd");
-
-        if (cachedResetDate != currentDate)
+        string lastSaveTimeStr = PlayerPrefs.GetString("LastSaveTime", string.Empty);
+        if (!string.IsNullOrEmpty(lastSaveTimeStr))
         {
-            ResetData();
-            cachedResetDate = currentDate;
-            PlayerPrefs.SetString(LastResetDateKey, currentDate);
-            PlayerPrefs.Save();
+            DateTime lastSaveTime = DateTime.Parse(lastSaveTimeStr);
+            if ((DateTime.Now - lastSaveTime).TotalHours >= 24)
+            {
+                ResetData();
+            }
         }
+
+        totalDistanceText.text = $"{TotalDistance:F2} meters";
+        totalStepsText.text = $"{TotalSteps}";
+
+        Debug.Log("Data Loaded - Total Distance: " + TotalDistance + ", Total Steps: " + TotalSteps);
     }
 
     public void ResetData()
     {
+        // Clear saved data
         PlayerPrefs.DeleteKey("TotalDistance");
         PlayerPrefs.DeleteKey("TotalSteps");
-        PlayerPrefs.DeleteKey("StepDistance");
+        PlayerPrefs.DeleteKey("LastSaveTime");
         PlayerPrefs.Save();
 
-        totalDistance = 0f;
-        totalSteps = 0;
-        stepDistance = 0f;
+        // Reset in-memory values
+        TotalDistance = 0f;
+        TotalSteps = 0;
+        _stepDistance = 0f;
 
-        Debug.Log("Data Reset for a new day");
+        // Update the UI
+        totalDistanceText.text = $"{TotalDistance:F2} meters";
+        totalStepsText.text = $"{TotalSteps}";
     }
-
 }
