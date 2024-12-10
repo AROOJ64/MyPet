@@ -171,9 +171,7 @@ public class GPSAndStepCounter : MonoBehaviour
             UpdateARDistance();
 
             // Update total distance based on weights
-            TotalDistance = loadedTotalDistance + (gpsWeight * gpsTotalDistance) + (arWeight * arTotalDistance);
-
-            loadedTotalDistance = 0;
+            TotalDistance = (gpsWeight * gpsTotalDistance) + (arWeight * arTotalDistance);
         }
         else
         {
@@ -376,7 +374,9 @@ public class GPSAndStepCounter : MonoBehaviour
         if (!_isDataLoaded)
             return;
 
-        PlayerPrefs.SetFloat("TotalDistance", TotalDistance);
+        PlayerPrefs.SetFloat("gpsTotalDistance", gpsTotalDistance);
+        PlayerPrefs.SetFloat("arTotalDistance", arTotalDistance);
+
         PlayerPrefs.SetInt("TotalSteps", TotalSteps);
         PlayerPrefs.SetString("LastSaveTime", DateTime.Now.ToString());
 
@@ -387,7 +387,9 @@ public class GPSAndStepCounter : MonoBehaviour
 
     private void LoadData()
     {
-        loadedTotalDistance = PlayerPrefs.GetFloat("TotalDistance");
+        gpsTotalDistance = PlayerPrefs.GetFloat("gpsTotalDistance");
+        arTotalDistance = PlayerPrefs.GetFloat("arTotalDistance");
+
         TotalSteps = PlayerPrefs.GetInt("TotalSteps");
 
         string lastSaveTimeStr = PlayerPrefs.GetString("LastSaveTime", string.Empty);
@@ -399,9 +401,6 @@ public class GPSAndStepCounter : MonoBehaviour
                 ResetData();
             }
         }
-
-        totalDistanceText.text = $"{TotalDistance:F2} meters";
-        totalStepsText.text = $"{TotalSteps}";
 
         _isDataLoaded = true;
 
