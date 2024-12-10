@@ -62,6 +62,7 @@ public class GPSAndStepCounter : MonoBehaviour
     private float arTotalDistance = 0f;
     private float _totalDistance = 0f;
     private float _stepDistance = 0f;
+    private float loadedTotalDistance = 0f;
 
     private Vector3 lastARPosition;
     private bool isFirstARPosition = true;
@@ -71,6 +72,8 @@ public class GPSAndStepCounter : MonoBehaviour
     private readonly float distanceEventCooldown = 1f; // Cooldown period in seconds
     private float lastDistanceEventTime = 0f;
     private float lastStepsEventTime = 0f;
+
+    private bool _isDataLoaded = false;
 
     public static GPSAndStepCounter Instance { get; private set; }
 
@@ -110,6 +113,8 @@ public class GPSAndStepCounter : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        LoadData();
     }
 
     private void Start()
@@ -139,8 +144,6 @@ public class GPSAndStepCounter : MonoBehaviour
             Debug.LogError("Accelerometer not supported on this device!");
         }
 
-        LoadData();
-
         Input.location.Start();
 
         // Save the initial AR position
@@ -168,9 +171,9 @@ public class GPSAndStepCounter : MonoBehaviour
             UpdateARDistance();
 
             // Update total distance based on weights
-            TotalDistance = (gpsWeight * gpsTotalDistance) + (arWeight * arTotalDistance);
+            TotalDistance = loadedTotalDistance + (gpsWeight * gpsTotalDistance) + (arWeight * arTotalDistance);
 
-            Debug.Log($"GPS Distance: {gpsTotalDistance:F2} meters");
+            loadedTotalDistance = 0;
         }
         else
         {
@@ -184,11 +187,10 @@ public class GPSAndStepCounter : MonoBehaviour
         DetectSteps();
 
         // Reset totalSteps after initialization
-        if (!hasInitialized && accelerationHistory.Count >= historySize)
-        {
-            TotalSteps = 0;
-            hasInitialized = true;
-        }
+        //if (!hasInitialized && accelerationHistory.Count >= historySize)
+        //{
+        //    hasInitialized = true;
+        //}
 
         // Calculate distance based on steps
         _stepDistance = TotalSteps * averageStepLength;
@@ -220,34 +222,31 @@ public class GPSAndStepCounter : MonoBehaviour
 
     private void UpdateGPSData()
     {
-        if (Input.location.status == LocationServiceStatus.Running)
+        float latitude = Input.location.lastData.latitude;
+        float longitude = Input.location.lastData.longitude;
+        float horizontalAccuracy = Input.location.lastData.horizontalAccuracy;
+
+        if (gpsLatitude != 0 && gpsLongitude != 0)
         {
-            float latitude = Input.location.lastData.latitude;
-            float longitude = Input.location.lastData.longitude;
-            float horizontalAccuracy = Input.location.lastData.horizontalAccuracy;
+            // Calculate GPS distance using the Haversine formula
+            float gpsDistance = CalculateGPSDistance(gpsLatitude, gpsLongitude, latitude, longitude);
 
-            if (gpsLatitude != 0 && gpsLongitude != 0)
+            // Check GPS accuracy before adding distance
+            if (horizontalAccuracy <= 10f) // Acceptable accuracy threshold (in meters)
             {
-                // Calculate GPS distance using the Haversine formula
-                float gpsDistance = CalculateGPSDistance(gpsLatitude, gpsLongitude, latitude, longitude);
-
-                // Check GPS accuracy before adding distance
-                if (horizontalAccuracy <= 10f) // Acceptable accuracy threshold (in meters)
-                {
-                    // Apply a threshold to ignore minor GPS noise
-                    if (gpsDistance > 0.5f)
-                        gpsTotalDistance += gpsDistance;
-                }
-                else
-                {
-                    //Debug.Log("GPS data not accurate enough. Skipping this update.");
-                }
+                // Apply a threshold to ignore minor GPS noise
+                if (gpsDistance > 0.5f)
+                    gpsTotalDistance += gpsDistance;
             }
-
-            // Update GPS coordinates
-            gpsLatitude = latitude;
-            gpsLongitude = longitude;
+            else
+            {
+                //Debug.Log("GPS data not accurate enough. Skipping this update.");
+            }
         }
+
+        // Update GPS coordinates
+        gpsLatitude = latitude;
+        gpsLongitude = longitude;
     }
 
     private void UpdateARDistance()
@@ -374,6 +373,9 @@ public class GPSAndStepCounter : MonoBehaviour
 
     private void SaveData()
     {
+        if (!_isDataLoaded)
+            return;
+
         PlayerPrefs.SetFloat("TotalDistance", TotalDistance);
         PlayerPrefs.SetInt("TotalSteps", TotalSteps);
         PlayerPrefs.SetString("LastSaveTime", DateTime.Now.ToString());
@@ -385,8 +387,8 @@ public class GPSAndStepCounter : MonoBehaviour
 
     private void LoadData()
     {
-        TotalDistance = PlayerPrefs.GetFloat("TotalDistance", 0f);
-        TotalSteps = PlayerPrefs.GetInt("TotalSteps", 0);
+        loadedTotalDistance = PlayerPrefs.GetFloat("TotalDistance");
+        TotalSteps = PlayerPrefs.GetInt("TotalSteps");
 
         string lastSaveTimeStr = PlayerPrefs.GetString("LastSaveTime", string.Empty);
         if (!string.IsNullOrEmpty(lastSaveTimeStr))
@@ -401,10 +403,12 @@ public class GPSAndStepCounter : MonoBehaviour
         totalDistanceText.text = $"{TotalDistance:F2} meters";
         totalStepsText.text = $"{TotalSteps}";
 
+        _isDataLoaded = true;
+
         Debug.Log("Data Loaded - Total Distance: " + TotalDistance + ", Total Steps: " + TotalSteps);
     }
 
-    public void ResetData()
+    private void ResetData()
     {
         // Clear saved data
         PlayerPrefs.DeleteKey("TotalDistance");
@@ -420,5 +424,7 @@ public class GPSAndStepCounter : MonoBehaviour
         // Update the UI
         totalDistanceText.text = $"{TotalDistance:F2} meters";
         totalStepsText.text = $"{TotalSteps}";
+
+        Debug.Log("Data Reset - Total Distance: " + TotalDistance + ", Total Steps: " + TotalSteps);
     }
 }
