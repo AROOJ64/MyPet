@@ -19,6 +19,12 @@ public class ARPlacement : MonoBehaviour
     private bool isObjectPlaced = false;
     private int selectedAnimalIndex = 0;
 
+    // Camera movement tracking
+    private Vector3 lastCameraPosition;
+    private float movementThreshold = 0.05f; // Minimum movement distance to trigger walking animation
+    private bool isMoving = false;
+    private float movementSmoothingFactor = 0.1f; // How much smoothing to apply
+
     void Start()
     {
         if (raycastManager == null)
@@ -29,6 +35,8 @@ public class ARPlacement : MonoBehaviour
         {
             Debug.LogError("Animal prefabs list is empty or not assigned.");
         }
+
+        lastCameraPosition = Camera.main.transform.position; // Initialize the camera position
     }
 
     void Update()
@@ -47,6 +55,28 @@ public class ARPlacement : MonoBehaviour
             }
 
             PerformRaycast(touchPosition);
+        }
+
+        // Track camera movement with smoothing
+        Vector3 currentCameraPosition = Camera.main.transform.position;
+        float distanceMoved = Vector3.Distance(currentCameraPosition, lastCameraPosition);
+
+        if (distanceMoved > movementThreshold)
+        {
+            isMoving = true; // Camera has moved significantly
+            lastCameraPosition = Vector3.Lerp(lastCameraPosition, currentCameraPosition, movementSmoothingFactor);
+
+            // Trigger walking animation if the camera has moved
+            PlayWalkingAnimation();
+            MoveAnimal();
+        }
+        else
+        {
+            // Smoothly transition to idle state
+            if (isMoving)
+            {
+                StartCoroutine(SmoothlyTransitionToIdle());
+            }
         }
     }
 
@@ -105,8 +135,12 @@ public class ARPlacement : MonoBehaviour
     {
         if (spawnedAnimal != null && foodPrefab != null)
         {
-            Instantiate(foodPrefab, spawnedAnimal.transform.position + Vector3.forward, Quaternion.identity);
+            GameObject food = Instantiate(foodPrefab, spawnedAnimal.transform.position + Vector3.forward, Quaternion.identity);
             Debug.Log("Food placed in front of the animal.");
+
+            // Destroy the food after 2 seconds
+            Destroy(food, 2f);
+
             PlayRunningAnimation();
         }
         else
@@ -119,13 +153,66 @@ public class ARPlacement : MonoBehaviour
     {
         if (spawnedAnimal != null && ballPrefab != null)
         {
-            Instantiate(ballPrefab, spawnedAnimal.transform.position + Vector3.forward * 2, Quaternion.identity);
+            GameObject ball = Instantiate(ballPrefab, spawnedAnimal.transform.position + Vector3.forward * 2, Quaternion.identity);
             Debug.Log("Ball thrown in front of the animal.");
+
+            // Destroy the ball after 2 seconds
+            Destroy(ball, 2f);
+
             PlayRunningAnimation();
         }
         else
         {
             Debug.LogWarning("Cannot throw ball; either the animal or ballPrefab is missing.");
+        }
+    }
+
+    private void PlayWalkingAnimation()
+    {
+        if (animalAnimator != null && isMoving)
+        {
+            animalAnimator.SetBool("isWalking", true);
+            Debug.Log("Walking animation triggered.");
+        }
+        else
+        {
+            Debug.LogWarning("No Animator found to play the walking animation.");
+        }
+    }
+
+    private IEnumerator SmoothlyTransitionToIdle()
+    {
+        isMoving = false;
+        float idleTransitionTime = 0.5f; // Adjust this value for smoother transitions
+        float elapsedTime = 0f;
+
+        while (elapsedTime < idleTransitionTime)
+        {
+            // Gradually reduce the walking animation speed
+            if (animalAnimator != null)
+            {
+                animalAnimator.speed = Mathf.Lerp(1f, 0f, elapsedTime / idleTransitionTime);
+            }
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // Finally, stop walking and trigger the idle animation
+        if (animalAnimator != null)
+        {
+            animalAnimator.SetBool("isWalking", false);
+            animalAnimator.speed = 1f; // Reset animation speed
+            animalAnimator.SetTrigger("isIdle");
+            Debug.Log("Walking animation stopped and transitioned to idle.");
+        }
+    }
+
+    private void MoveAnimal()
+    {
+        if (spawnedAnimal != null && isMoving)
+        {
+            // Move the animal along with the camera movement or any desired movement logic.
+            spawnedAnimal.transform.position += Camera.main.transform.forward * Time.deltaTime;
         }
     }
 
@@ -155,5 +242,4 @@ public class ARPlacement : MonoBehaviour
             Debug.Log("Running animation reset.");
         }
     }
-
 }
