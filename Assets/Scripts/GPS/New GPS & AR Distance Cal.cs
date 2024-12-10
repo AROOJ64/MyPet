@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.XR.CoreUtils;
@@ -79,6 +80,10 @@ public class GPSAndStepCounter : MonoBehaviour
 
     public int stepsThreshold = 2000; // Example threshold in steps
     public UnityEvent OnStepsReached;
+    
+    //Daily Reset
+    private const string LastResetDateKey = "LastResetDate";
+    private string cachedResetDate;
 
     private void Awake()
     {
@@ -96,6 +101,7 @@ public class GPSAndStepCounter : MonoBehaviour
 
     private void Start()
     {
+
         // Request location permissions
         if (!Permission.HasUserAuthorizedPermission(Permission.FineLocation))
         {
@@ -133,6 +139,12 @@ public class GPSAndStepCounter : MonoBehaviour
         // Pre-fill the accelerationHistory with the initial value
         for (int i = 0; i < historySize; i++)
             accelerationHistory.Enqueue(previousFilteredValue);
+
+        LoadData();
+        SaveData(); // Ensure data is saved after loading initial values
+
+        cachedResetDate = PlayerPrefs.GetString(LastResetDateKey, string.Empty);
+        CheckDailyReset();
     }
 
     private void Update()
@@ -165,6 +177,7 @@ public class GPSAndStepCounter : MonoBehaviour
             lastDistanceReached += distanceThreshold;
             lastDistanceEventTime = Time.time;
             OnDistanceReached?.Invoke();
+            SaveData();
         }
 
         if (totalSteps - lastStepsReached >= stepsThreshold && Time.time - lastStepsEventTime >= distanceEventCooldown)
@@ -172,6 +185,7 @@ public class GPSAndStepCounter : MonoBehaviour
             lastStepsReached += stepsThreshold;
             lastStepsEventTime = Time.time;
             OnStepsReached?.Invoke();
+            SaveData();
         }
 
         // Update the UI with the calculated values
@@ -182,6 +196,7 @@ public class GPSAndStepCounter : MonoBehaviour
         Debug.Log($"Total Distance Walked: {totalDistance:F2} meters");
         Debug.Log($"Total Steps Taken: {totalSteps}");
         Debug.Log($"Distance Calculated from Steps: {stepDistance:F2} meters");
+        SaveData();
     }
 
 
@@ -338,4 +353,64 @@ public class GPSAndStepCounter : MonoBehaviour
     }
 
     private bool IsDeviceStationary() => Input.acceleration.magnitude < 0.05f; // Adjust threshold as needed
+
+    private void SaveData()
+    {
+        PlayerPrefs.SetFloat("TotalDistance", totalDistance);
+        PlayerPrefs.SetInt("TotalSteps", totalSteps);
+        PlayerPrefs.SetFloat("StepDistance", stepDistance);
+        PlayerPrefs.Save();
+        Debug.Log("Data Saved");
+        Debug.Log("Data Saved - Total Distance: " + totalDistance + ", Total Steps: " + totalSteps + ", Step Distance: " + stepDistance);
+    }
+
+    private void LoadData()
+    {
+        totalDistance = PlayerPrefs.GetFloat("TotalDistance", 0f);
+        totalSteps = PlayerPrefs.GetInt("TotalSteps", 0);
+        stepDistance = PlayerPrefs.GetFloat("StepDistance", 0f);
+
+        Debug.Log($"Loaded Data - Total Distance: {totalDistance}, Total Steps: {totalSteps}, Step Distance: {stepDistance}");
+    }
+    private void OnApplicationQuit()
+    {
+        SaveData(); // Save data when the application is closed
+        Debug.Log("Application is quitting");
+    }
+    private void CheckDailyReset()
+    {
+        //string lastResetDate = PlayerPrefs.GetString(LastResetDateKey, string.Empty);
+        //string currentDate = DateTime.Now.ToString("yyyy-MM-dd"); // Format date as "2024-12-10"
+
+        //if (lastResetDate != currentDate)
+        //{
+        //    ResetData();
+        //    PlayerPrefs.SetString(LastResetDateKey, currentDate); // Update the reset date
+        //    PlayerPrefs.Save();
+        //}
+        string currentDate = DateTime.Now.ToString("yyyy-MM-dd");
+
+        if (cachedResetDate != currentDate)
+        {
+            ResetData();
+            cachedResetDate = currentDate;
+            PlayerPrefs.SetString(LastResetDateKey, currentDate);
+            PlayerPrefs.Save();
+        }
+    }
+
+    public void ResetData()
+    {
+        PlayerPrefs.DeleteKey("TotalDistance");
+        PlayerPrefs.DeleteKey("TotalSteps");
+        PlayerPrefs.DeleteKey("StepDistance");
+        PlayerPrefs.Save();
+
+        totalDistance = 0f;
+        totalSteps = 0;
+        stepDistance = 0f;
+
+        Debug.Log("Data Reset for a new day");
+    }
+
 }
