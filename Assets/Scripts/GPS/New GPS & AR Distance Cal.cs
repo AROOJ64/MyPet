@@ -101,7 +101,7 @@ public class GPSAndStepCounter : MonoBehaviour
 
     private void Start()
     {
-
+        LoadData();
         // Request location permissions
         if (!Permission.HasUserAuthorizedPermission(Permission.FineLocation))
         {
@@ -140,7 +140,7 @@ public class GPSAndStepCounter : MonoBehaviour
         for (int i = 0; i < historySize; i++)
             accelerationHistory.Enqueue(previousFilteredValue);
 
-        LoadData();
+        
         SaveData(); // Ensure data is saved after loading initial values
 
         cachedResetDate = PlayerPrefs.GetString(LastResetDateKey, string.Empty);
