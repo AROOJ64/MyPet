@@ -27,6 +27,9 @@ public class UIManager : MonoBehaviour
     private const int FoodCost = 15;
     private const int BallCost = 25;
 
+    private const string LastSavedDateKey = "LastSavedDate";
+    private const string InputFieldValueKey = "InputFieldValue";
+
     private void OnEnable()
     {
         // Subscribe to events
@@ -53,6 +56,8 @@ public class UIManager : MonoBehaviour
         LoadCoins();
         LoadFoodCount();
         LoadBallCount();
+        LoadInputFieldValue();
+        CheckForDayReset();
 
         // Update UI
         UpdateFoodText();
@@ -90,7 +95,11 @@ public class UIManager : MonoBehaviour
                 // Update the coinText UI
                 coinText.text = $"{currentCoins}";
 
-                inputFieldDisplayText.text=inputValue.ToString() ;
+                // Save the input value to PlayerPrefs
+                PlayerPrefs.SetString(InputFieldValueKey, inputValue.ToString());
+                PlayerPrefs.Save();
+
+                inputFieldDisplayText.text = inputValue.ToString();
 
                 // Save the new coin count
                 SaveCoins();
@@ -105,6 +114,30 @@ public class UIManager : MonoBehaviour
         else
         {
             Debug.LogError("Invalid input. Please enter a valid number.");
+        }
+    }
+
+    private void CheckForDayReset()
+    {
+        string lastSavedDate = PlayerPrefs.GetString(LastSavedDateKey, "");
+        string currentDate = System.DateTime.Now.ToString("yyyy-MM-dd");
+
+        // If a new day has started, reset the input field
+        if (lastSavedDate != currentDate)
+        {
+            inputField.text = ""; // Reset input field
+            PlayerPrefs.SetString(LastSavedDateKey, currentDate); // Update the last saved date
+            PlayerPrefs.Save();
+        }
+    }
+
+    private void LoadInputFieldValue()
+    {
+        string savedInputValue = PlayerPrefs.GetString(InputFieldValueKey, "");
+        if (!string.IsNullOrEmpty(savedInputValue))
+        {
+            inputField.text = savedInputValue;
+            inputFieldDisplayText.text = savedInputValue;
         }
     }
 
