@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using TMPro;  // Add this if you're using TextMeshPro
 
 public class ARPlacement : MonoBehaviour
 {
@@ -27,6 +28,11 @@ public class ARPlacement : MonoBehaviour
     private bool isMoving = false;
     private float movementSmoothingFactor = 0.1f; // How much smoothing to apply
 
+    [Header("UI Components")]
+    [SerializeField] private TextMeshProUGUI animalNameText;  // Add a reference to the TextMeshProUGUI component
+
+    private Vector3 velocity = Vector3.zero;
+
     private void Start()
     {
         if (raycastManager == null)
@@ -39,6 +45,11 @@ public class ARPlacement : MonoBehaviour
         }
 
         lastCameraPosition = Camera.main.transform.position; // Initialize the camera position
+
+        if (animalNameText == null)
+        {
+            Debug.LogError("Animal name text UI is not assigned.");
+        }
     }
 
     private void Update()
@@ -55,19 +66,22 @@ public class ARPlacement : MonoBehaviour
             {
                 touchPosition = Input.mousePosition;
             }
-
+            if (isMoving)
+            {
+                spawnedAnimal.transform.rotation = Quaternion.identity; // Set rotation to no rotation
+            }
             PerformRaycast(touchPosition);
         }
 
         // Track camera movement with smoothing
         Vector3 currentCameraPosition = Camera.main.transform.position;
+        float smoothDampTime = 0.2f;
         float distanceMoved = Vector3.Distance(currentCameraPosition, lastCameraPosition);
 
         if (distanceMoved > movementThreshold)
         {
             isMoving = true; // Camera has moved significantly
-            lastCameraPosition = Vector3.Lerp(lastCameraPosition, currentCameraPosition, movementSmoothingFactor);
-
+            lastCameraPosition = Vector3.SmoothDamp(lastCameraPosition, currentCameraPosition, ref velocity, smoothDampTime);
             // Trigger walking animation if the camera has moved
             PlayWalkingAnimation();
             MoveAnimal();
@@ -125,6 +139,11 @@ public class ARPlacement : MonoBehaviour
         if (index >= 0 && index < animalPrefabs.Count)
         {
             selectedAnimalIndex = index;
+            // Update the UI text with the selected animal's name
+            if (animalNameText != null)
+            {
+                animalNameText.text = "" + animalPrefabs[selectedAnimalIndex].name;
+            }
             //Debug.Log("Animal selected: " + animalPrefabs[index].name);
         }
         else
@@ -213,10 +232,16 @@ public class ARPlacement : MonoBehaviour
     {
         if (spawnedAnimal != null && isMoving)
         {
-            // Move the animal along with the camera movement or any desired movement logic.
-            spawnedAnimal.transform.position += Camera.main.transform.forward * Time.deltaTime;
+            Vector3 cameraDelta = Camera.main.transform.position - lastCameraPosition;
+            float lerpFactor = 0.2f; // Adjust this value for desired smoothness
+
+            // Only consider the forward movement (Z-axis) of the camera
+            cameraDelta.x = cameraDelta.y = 0f;
+
+            spawnedAnimal.transform.position = Vector3.Lerp(spawnedAnimal.transform.position, spawnedAnimal.transform.position + cameraDelta, lerpFactor);
         }
     }
+
 
     private void PlayRunningAnimation()
     {

@@ -10,17 +10,19 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI coinText;
 
     [Header("Item Quantities")]
-    [SerializeField] private TextMeshProUGUI[] foodTexts; // Multiple texts for food quantity
-    [SerializeField] private TextMeshProUGUI[] ballTexts; // Multiple texts for ball quantity
+    [SerializeField] private TextMeshProUGUI[] foodTexts;
+    [SerializeField] private TextMeshProUGUI[] ballTexts;
 
-    [Header("Buttons")]
-    [SerializeField] private Button decreaseFoodButton; // Button to decrease food
-    [SerializeField] private Button decreaseBallButton; // Button to decrease ball
+    [Header("Input Field")]
+    [SerializeField] private TMP_InputField inputField;
+    [SerializeField] private TextMeshProUGUI inputFieldDisplayText;
 
+    [Header("UI Button")]
+    [SerializeField] private Button submitButton; // Reference to the UI Button
 
     private int currentCoins = 0;
-    private int foodCount = 0; // Tracks the total number of food
-    private int ballCount = 0; // Tracks the total number of balls
+    private int foodCount = 0;
+    private int ballCount = 0;
 
     private const int FoodCost = 15;
     private const int BallCost = 25;
@@ -30,6 +32,9 @@ public class UIManager : MonoBehaviour
         // Subscribe to events
         distanceText.OnPreRenderText += DistanceText_OnPreRenderText;
         stepsText.OnPreRenderText += StepsText_OnPreRenderText;
+
+        // Add listener for input field submission via button
+        submitButton.onClick.AddListener(OnInputFieldSubmit);
     }
 
     private void OnDisable()
@@ -37,6 +42,9 @@ public class UIManager : MonoBehaviour
         // Unsubscribe to avoid memory leaks
         distanceText.OnPreRenderText -= DistanceText_OnPreRenderText;
         stepsText.OnPreRenderText -= StepsText_OnPreRenderText;
+
+        // Remove listener
+        submitButton.onClick.RemoveListener(OnInputFieldSubmit);
     }
 
     private void Start()
@@ -61,15 +69,49 @@ public class UIManager : MonoBehaviour
         stepsText.text = $"Steps: {GPSAndStepCounter.Instance.TotalSteps}";
     }
 
+    // Function triggered when the submit button is clicked
+    private void OnInputFieldSubmit()
+    {
+        // Get the input value from the input field
+        string value = inputField.text;
+
+        // Convert the input value to an integer
+        if (int.TryParse(value, out int inputValue))
+        {
+            // Check if inputValue is a multiple of 1000
+            if (inputValue >= 1000)
+            {
+                // Calculate the coin increment based on the value
+                int coinIncrement = (inputValue / 1000) * 10;
+
+                // Increase the coins
+                currentCoins += coinIncrement;
+
+                // Update the coinText UI
+                coinText.text = $"{currentCoins}";
+
+                inputFieldDisplayText.text=inputValue.ToString() ;
+
+                // Save the new coin count
+                SaveCoins();
+
+                Debug.Log($"Input Value: {inputValue}, Coins Increased by {coinIncrement}, New Coin Count: {currentCoins}");
+            }
+            else
+            {
+                Debug.Log("Input value is less than 1000, no coins added.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Invalid input. Please enter a valid number.");
+        }
+    }
+
     public void IncreaseCoins()
     {
         currentCoins += 10; // Increase by 10 coins
-
-        // Update the coinText UI
         coinText.text = $"{currentCoins}";
-        Debug.Log($"Total Coins: {currentCoins}");
-
-        // Save coins whenever they increase
         SaveCoins();
     }
 
@@ -79,19 +121,10 @@ public class UIManager : MonoBehaviour
         {
             currentCoins -= FoodCost;
             foodCount++;
-
-            // Update the UI for coins and food count
             coinText.text = $"{currentCoins}";
             UpdateFoodText();
-
-            // Save updated data
             SaveCoins();
             SaveFoodCount();
-            Debug.Log($"Purchased food. Remaining Coins: {currentCoins}, Total Food: {foodCount}");
-        }
-        else
-        {
-            Debug.Log("Not enough coins to buy food.");
         }
     }
 
@@ -101,19 +134,10 @@ public class UIManager : MonoBehaviour
         {
             currentCoins -= BallCost;
             ballCount++;
-
-            // Update the UI for coins and ball count
             coinText.text = $"{currentCoins}";
             UpdateBallText();
-
-            // Save updated data
             SaveCoins();
             SaveBallCount();
-            Debug.Log($"Purchased ball. Remaining Coins: {currentCoins}, Total Balls: {ballCount}");
-        }
-        else
-        {
-            Debug.Log("Not enough coins to buy a ball.");
         }
     }
 
@@ -123,7 +147,7 @@ public class UIManager : MonoBehaviour
         {
             foodCount--;
             UpdateFoodText();
-            SaveFoodCount(); // Save the updated food count
+            SaveFoodCount();
         }
     }
 
@@ -133,7 +157,7 @@ public class UIManager : MonoBehaviour
         {
             ballCount--;
             UpdateBallText();
-            SaveBallCount(); // Save the updated ball count
+            SaveBallCount();
         }
     }
 
@@ -143,7 +167,6 @@ public class UIManager : MonoBehaviour
         {
             text.text = $"{foodCount}";
         }
-        decreaseFoodButton.interactable = foodCount > 0;
     }
 
     private void UpdateBallText()
@@ -152,14 +175,12 @@ public class UIManager : MonoBehaviour
         {
             text.text = $"{ballCount}";
         }
-        decreaseBallButton.interactable = ballCount > 0;
     }
 
     private void SaveCoins()
     {
         PlayerPrefs.SetInt("Coins", currentCoins);
-        PlayerPrefs.Save(); // Ensures the data is written to disk
-        Debug.Log("Coins saved successfully.");
+        PlayerPrefs.Save();
     }
 
     private void LoadCoins()
@@ -168,11 +189,6 @@ public class UIManager : MonoBehaviour
         {
             currentCoins = PlayerPrefs.GetInt("Coins");
             coinText.text = $"{currentCoins}";
-            Debug.Log($"Coins loaded: {currentCoins}");
-        }
-        else
-        {
-            Debug.Log("No saved coin data found.");
         }
     }
 
@@ -180,7 +196,6 @@ public class UIManager : MonoBehaviour
     {
         PlayerPrefs.SetInt("FoodCount", foodCount);
         PlayerPrefs.Save();
-        Debug.Log("Food count saved successfully.");
     }
 
     private void LoadFoodCount()
@@ -188,11 +203,6 @@ public class UIManager : MonoBehaviour
         if (PlayerPrefs.HasKey("FoodCount"))
         {
             foodCount = PlayerPrefs.GetInt("FoodCount");
-            Debug.Log($"Food count loaded: {foodCount}");
-        }
-        else
-        {
-            Debug.Log("No saved food data found.");
         }
     }
 
@@ -200,7 +210,6 @@ public class UIManager : MonoBehaviour
     {
         PlayerPrefs.SetInt("BallCount", ballCount);
         PlayerPrefs.Save();
-        Debug.Log("Ball count saved successfully.");
     }
 
     private void LoadBallCount()
@@ -208,11 +217,6 @@ public class UIManager : MonoBehaviour
         if (PlayerPrefs.HasKey("BallCount"))
         {
             ballCount = PlayerPrefs.GetInt("BallCount");
-            Debug.Log($"Ball count loaded: {ballCount}");
-        }
-        else
-        {
-            Debug.Log("No saved ball data found.");
         }
     }
 }
