@@ -8,7 +8,7 @@ public class InputFieldPanel : MonoBehaviour
     public GameObject panel;
     public TMP_InputField inputField;
     public Button nextButton;
-    public TextMeshProUGUI errorMessageText; // UI Text to show error message
+    private TextMeshProUGUI errorMessageText; // UI Text to show error message
 
     private const string FirstTimeKey = "FirstTime";  // Key for PlayerPrefs
 
