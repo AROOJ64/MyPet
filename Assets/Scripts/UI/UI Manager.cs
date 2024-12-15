@@ -6,16 +6,17 @@ public class UIManager : MonoBehaviour
 {
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI distanceText;
+
     [SerializeField] private TextMeshProUGUI stepsText;
     [SerializeField] private TextMeshProUGUI coinText;
 
     [Header("Item Quantities")]
     [SerializeField] private TextMeshProUGUI[] foodTexts;
+
     [SerializeField] private TextMeshProUGUI[] ballTexts;
 
     [Header("Input Field")]
     [SerializeField] private TMP_InputField inputField;
-    [SerializeField] private TextMeshProUGUI inputFieldDisplayText;
 
     [Header("UI Button")]
     [SerializeField] private Button submitButton; // Reference to the UI Button
@@ -23,6 +24,7 @@ public class UIManager : MonoBehaviour
     private int currentCoins = 0;
     private int foodCount = 0;
     private int ballCount = 0;
+    private int _currentSteps = 0;
 
     private const int FoodCost = 15;
     private const int BallCost = 25;
@@ -33,8 +35,8 @@ public class UIManager : MonoBehaviour
     private void OnEnable()
     {
         // Subscribe to events
-        distanceText.OnPreRenderText += DistanceText_OnPreRenderText;
-        stepsText.OnPreRenderText += StepsText_OnPreRenderText;
+        //distanceText.OnPreRenderText += DistanceText_OnPreRenderText;
+        //stepsText.OnPreRenderText += StepsText_OnPreRenderText;
 
         // Add listener for input field submission via button
         submitButton.onClick.AddListener(OnInputFieldSubmit);
@@ -43,8 +45,8 @@ public class UIManager : MonoBehaviour
     private void OnDisable()
     {
         // Unsubscribe to avoid memory leaks
-        distanceText.OnPreRenderText -= DistanceText_OnPreRenderText;
-        stepsText.OnPreRenderText -= StepsText_OnPreRenderText;
+        //distanceText.OnPreRenderText -= DistanceText_OnPreRenderText;
+        //stepsText.OnPreRenderText -= StepsText_OnPreRenderText;
 
         // Remove listener
         submitButton.onClick.RemoveListener(OnInputFieldSubmit);
@@ -99,7 +101,8 @@ public class UIManager : MonoBehaviour
                 PlayerPrefs.SetString(InputFieldValueKey, inputValue.ToString());
                 PlayerPrefs.Save();
 
-                inputFieldDisplayText.text = inputValue.ToString();
+                _currentSteps += 1000;
+                stepsText.text = _currentSteps.ToString();
 
                 // Save the new coin count
                 SaveCoins();
@@ -137,7 +140,7 @@ public class UIManager : MonoBehaviour
         if (!string.IsNullOrEmpty(savedInputValue))
         {
             inputField.text = savedInputValue;
-            inputFieldDisplayText.text = savedInputValue;
+            stepsText.text = savedInputValue;
         }
     }
 
